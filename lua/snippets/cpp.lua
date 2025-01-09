@@ -11,9 +11,19 @@ end
 
 ls.add_snippets("cpp", {
 	snippet("guard", {
-		text_node({"#ifnded "}), function_node(guard_name, {}),
+		text_node({"#ifndef "}), function_node(guard_name, {}),
 		text_node({"", "#define "}), function_node(guard_name, {}),
 		text_node({"", "", ""}), insert_node(0),
 		text_node({"", "", "#endif // "}), function_node(guard_name, {})
+	}),
+})
+
+
+ls.add_snippets("cpp", {
+	snippet("main", {
+		text_node({"int main(int argc, char **argv) {"}),
+		text_node({"", "\t"}), insert_node(0),
+		text_node({"", "\treturn 0;"}),
+		text_node({"", "}"})
 	}),
 })
