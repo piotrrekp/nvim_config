@@ -304,7 +304,7 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
 vim.api.nvim_create_autocmd('TextYankPost', {
   callback = function()
-    vim.highlight.on_yank()
+    vim.hl.on_yank()
   end,
   group = highlight_group,
   pattern = '*',
@@ -595,8 +595,45 @@ local on_attach = function(_, bufnr)
     vim.keymap.set("n", keys, func, { buffer = bufnr, desc = "LSP: " .. desc })
   end
 
-  map("gd", vim.lsp.buf.definition, "Go to definition")
-  map("gr", vim.lsp.buf.references, "Go to references")
+  vim.keymap.set("n", "<leader>hh", function()
+    local filepath = vim.fn.expand("%:p") -- pełna ścieżka
+    local base = filepath:match("(.+)%.[^/]+$") -- bez rozszerzenia
+    local ext = filepath:match("%.([^%.]+)$") -- rozszerzenie
+
+    local candidates = {}
+
+    if ext == "h" or ext == "hpp" or ext == "hh" then
+      candidates = {
+        base .. ".cc",
+        base .. ".cpp",
+        base .. ".c",
+      }
+    elseif ext == "cc" or ext == "cpp" or ext == "c" then
+      candidates = {
+        base .. ".h",
+        base .. ".hpp",
+        base .. ".hh",
+      }
+    else
+      print("Nieobsługiwane rozszerzenie: " .. ext)
+      return
+    end
+
+    for _, altpath in ipairs(candidates) do
+      if vim.fn.filereadable(altpath) == 1 then
+        vim.cmd("edit " .. altpath)
+        return
+      end
+    end
+
+    print("Nie znaleziono pasującego pliku.")
+  end, { desc = "Przełącz między źródłem a nagłówkiem" })
+
+  -- map("gd", vim.lsp.buf.definition, "Go to definition")
+  -- map("gr", vim.lsp.buf.references, "Go to references")
+  map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+  map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+  map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
   map("K", vim.lsp.buf.hover, "Hover")
   map("<leader>rn", vim.lsp.buf.rename, "Rename")
   map("<leader>ca", vim.lsp.buf.code_action, "Code action")
