@@ -44,8 +44,11 @@ require('lazy').setup({
     'neovim/nvim-lspconfig',
     dependencies = {
       -- Automatically install LSPs to stdpath for neovim
-      { 'williamboman/mason.nvim', config = true },
+      { 'williamboman/mason.nvim', config = true ,
       'williamboman/mason-lspconfig.nvim',
+      version = ">2.0.0",
+      opts = {}
+      },
 
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
@@ -188,7 +191,6 @@ require('lazy').setup({
   -- Fuzzy Finder (files, lsp, etc)
   {
     'nvim-telescope/telescope.nvim',
-    branch = '0.1.x',
     dependencies = {
       'nvim-lua/plenary.nvim',
       -- Fuzzy Finder Algorithm which requires local dependencies to be built.
@@ -241,7 +243,7 @@ vim.wo.number = true
 vim.wo.relativenumber = true
 
 -- set right margin
-vim.o.colorcolumn="80"
+vim.o.colorcolumn="100"
 
 -- indent always tab
 vim.o.expandtab = false
@@ -562,48 +564,81 @@ require('mason-lspconfig').setup()
 --
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
-local servers = {
-  -- clangd = {},
-  -- gopls = {},
-  -- pyright = {},
-  -- rust_analyzer = {},
-  -- tsserver = {},
-  -- html = { filetypes = { 'html', 'twig', 'hbs'} },
 
+
+local servers = {
+  clangd = {
+    cmd = {
+      "clangd",
+      "-function-arg-placeholders=true",
+      "--background-index",
+      "--completion-style=detailed",
+      "--header-insertion=never"
+    },
+  },
+  pyright = {},
   lua_ls = {
-    Lua = {
-      workspace = { checkThirdParty = false },
-      telemetry = { enable = false },
-      -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-      -- diagnostics = { disable = { 'missing-fields' } },
+    settings = {
+      Lua = {
+        workspace = { checkThirdParty = false },
+        telemetry = { enable = false },
+      },
     },
   },
 }
 
--- Setup neovim lua configuration
-require('neodev').setup()
+local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
--- nvim-cmp supports additional completion capabilities, so broadcast that to servers
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+local on_attach = function(_, bufnr)
+	print("LSP attached to buffer " .. bufnr)
+  local map = function(keys, func, desc)
+    vim.keymap.set("n", keys, func, { buffer = bufnr, desc = "LSP: " .. desc })
+  end
 
--- Ensure the servers above are installed
-local mason_lspconfig = require 'mason-lspconfig'
+  map("gd", vim.lsp.buf.definition, "Go to definition")
+  map("gr", vim.lsp.buf.references, "Go to references")
+  map("K", vim.lsp.buf.hover, "Hover")
+  map("<leader>rn", vim.lsp.buf.rename, "Rename")
+  map("<leader>ca", vim.lsp.buf.code_action, "Code action")
+  vim.api.nvim_buf_create_user_command(bufnr, "Format", function()
+    vim.lsp.buf.format()
+  end, { desc = "Format current buffer with LSP" })
+end
 
-mason_lspconfig.setup {
+
+vim.lsp.config("clangd", {
+  on_attach = on_attach,
+  capabilities = capabilities,
+  cmd = {
+    "clangd",
+    "-function-arg-placeholders=true",
+    "--background-index",
+    "--completion-style=detailed",
+    "--header-insertion=never"
+  },
+})
+
+require("mason").setup()
+require("mason-lspconfig").setup({
   ensure_installed = vim.tbl_keys(servers),
-}
+  handlers = {
+    function(server_name)
+      local opts = {
+        capabilities = capabilities,
+        on_attach = on_attach,
+      }
 
-mason_lspconfig.setup_handlers {
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
-      filetypes = (servers[server_name] or {}).filetypes,
-    }
-  end,
-}
+      for k, v in pairs(servers[server_name] or {}) do
+        opts[k] = v
+      end
+
+      vim.lsp.config.setup(server_name, opts)
+    end,
+  },
+})
+
+
+
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
@@ -659,6 +694,7 @@ cmp.setup {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
     { name = 'path' },
+    { name = 'buffer' }
   },
 }
 
