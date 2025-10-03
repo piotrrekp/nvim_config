@@ -338,7 +338,15 @@ require('telescope').setup {
   defaults = {
     file_ignore_patterns = {
       "build",
-      "%.git/"
+      "venv/",
+      "venv/.*",
+      "__pycache__/",
+      "%.pyc",
+      "%.pyo",
+      "%.egg-info/",
+      "%.mypy_cache/",
+      "%.pytest_cache/",
+      "%.git/",
     },
     mappings = {
       i = {
@@ -403,6 +411,15 @@ local function telescope_live_grep_open_files()
   require('telescope.builtin').live_grep {
     grep_open_files = true,
     prompt_title = 'Live Grep in Open Files',
+    additional_args = function()
+			return {
+				"--glob", "!venv/**",
+				"--glob", "!__pycache__/**",
+				"--glob", "!.mypy_cache/**",
+				"--glob", "!*.pyc"
+			}
+    end,
+
   }
 end
 vim.keymap.set('n', '<leader>s/', telescope_live_grep_open_files, { desc = '[S]earch [/] in Open Files' })
