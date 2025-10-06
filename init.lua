@@ -28,6 +28,7 @@ vim.opt.rtp:prepend(lazypath)
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
+  {import = "custom/plugins/null-ls"},
   -- NOTE: First, some plugins that don't require any configuration
 
   -- Git related plugins
@@ -432,6 +433,7 @@ vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc
 vim.keymap.set('n', '<leader>sG', ':LiveGrepGitRoot<cr>', { desc = '[S]earch by [G]rep on Git Root' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
+vim.keymap.set('n', '<leader>q', require('telescope.builtin').diagnostics, { desc = '[q]uick diagnostics' })
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
