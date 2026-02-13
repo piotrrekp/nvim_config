@@ -1,4 +1,4 @@
--- Set <space> as the leader key
+ -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
 
@@ -28,14 +28,12 @@ vim.opt.rtp:prepend(lazypath)
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
-  -- NOTE: First, some plugins that don't require any configuration
-
-  -- Git related plugins
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
-
-  -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
+  { 'folke/which-key.nvim', opts = {} },
+  -- "gc" to comment visual regions/lines
+  { 'numToStr/Comment.nvim', opts = {} },
 
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
@@ -77,7 +75,6 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -157,8 +154,17 @@ require('lazy').setup({
     -- Theme inspired by Atom
     'rose-pine/neovim',
     priority = 1000,
+    -- config = function()
+    --   vim.cmd.colorscheme 'rose-pine'
+    -- end,
+  },
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+    opts = {},
     config = function()
-      vim.cmd.colorscheme 'rose-pine'
+      vim.cmd.colorscheme 'tokyonight-storm'
     end,
   },
 
@@ -176,17 +182,6 @@ require('lazy').setup({
     },
   },
 
-  -- {
-  --   -- Add indentation guides even on blank lines
-  --   'lukas-reineke/indent-blankline.nvim',
-  --   -- Enable `lukas-reineke/indent-blankline.nvim`
-  --   -- See `:help ibl`
-  --   main = 'ibl',
-  --   opts = {},
-  -- },
-
-  -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
 
   -- Fuzzy Finder (files, lsp, etc)
   {
@@ -239,8 +234,22 @@ require('lazy').setup({
     require("remote-sshfs").setup()
   end
 },
-
-}, {})
+-- {
+-- "echaya/neowiki.nvim",
+-- opts = {
+--   wiki_dirs = {
+--     -- neowiki.nvim supports both absolute and tilde-expanded paths
+--     { name = "work", path = "~/Dokumenty/wiki" },
+--   },
+-- },
+-- keys = {
+--   {"<leader>ww", "<cmd>lua require('neowiki').open_wiki()<cr>", desc = "Open Wiki" },
+--   { "<leader>wW", "<cmd>lua require('neowiki').open_wiki_floating()<cr>", desc = "Open Wiki in Floating Window" },
+--   { "<leader>wT", "<cmd>lua require('neowiki').open_wiki_new_tab()<cr>", desc = "Open Wiki in Tab" },
+-- },
+-- },
+  { import = "plugins" },
+})
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -612,7 +621,9 @@ local servers = {
       "-function-arg-placeholders=true",
       "--background-index",
       "--completion-style=detailed",
-      "--header-insertion=never"
+      "--header-insertion=never",
+      "--limit-results=500",
+      "--limit-references=500"
     },
   },
   pyright = {},
@@ -833,6 +844,5 @@ vim.api.nvim_create_autocmd("VimLeave", {
   end
 })
 
-
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
+vim.opt.path:append({ "**" })
+vim.lsp.set_log_level("error")
