@@ -27,13 +27,26 @@ vim.opt.rtp:prepend(lazypath)
 --
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
+
 require('lazy').setup({
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
   'tpope/vim-sleuth',
   { 'folke/which-key.nvim', opts = {} },
   -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
+  -- { 'numToStr/Comment.nvim', opts = {} },
+{
+  'numToStr/Comment.nvim',
+  dependencies = {
+    'JoosepAlviste/nvim-ts-context-commentstring',
+  },
+
+  config = function()
+    require('ts_context_commentstring').setup {
+      enable_autocmd = false,
+    }
+  end
+},
 
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
@@ -74,7 +87,17 @@ require('lazy').setup({
     },
   },
 
-  -- Useful plugin to show you pending keybinds.
+  {
+    "kylechui/nvim-surround",
+    version = "*",
+    event = "VeryLazy",
+    config = function()
+        require("nvim-surround").setup({
+            -- Tutaj możesz zostawić puste dla domyślnych ustawień
+        })
+    end,
+  },
+   -- Useful plugin to show you pending keybinds.
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -454,7 +477,7 @@ vim.defer_fn(function()
     auto_install = false,
 
     highlight = { enable = true },
-    indent = { enable = true },
+    indent = { enable = false },
     incremental_selection = {
       enable = true,
       keymaps = {
@@ -845,4 +868,20 @@ vim.api.nvim_create_autocmd("VimLeave", {
 })
 
 vim.opt.path:append({ "**" })
+vim.opt.termguicolors = true
 vim.lsp.set_log_level("error")
+ --
+-- Kopiowanie samej nazwy pliku do schowka systemowego
+vim.keymap.set('n', '<leader>yn', '<cmd>let @+ = expand("%:t")<cr>', { desc = 'Copy filename to system clipboard' })
+-- Kopiowanie pełnej ścieżki (przydatne do terminala)
+vim.keymap.set('n', '<leader>yp', '<cmd>let @+ = expand("%:p")<cr>', { desc = 'Copy full path to system clipboard' })
+
+-- Skok do następnego konfliktu
+vim.keymap.set('n', 'cc', function()
+  vim.fn.search('^<<<<<<<')
+end, { desc = "Skocz do następnego konfliktu" })
+
+-- Skok do poprzedniego konfliktu
+vim.keymap.set('n', 'cb', function()
+  vim.fn.search('^<<<<<<<', 'b')
+end, { desc = "Skocz do poprzedniego konfliktu" })
